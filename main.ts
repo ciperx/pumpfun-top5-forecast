@@ -41,6 +41,15 @@ const OUTPUT_DIR = process.env.MAKEFUN_OUTPUT_DIR || '/output';
 const LAMPORTS = 1e9;
 const MAX_ROWS_PER_PLACE = 100;
 const NAMED_MASS = 0.62; // rest stays unnamed: newcomers + model error
+// Tuning knobs (env overrides are for our backtest only; defaults are what the grader runs)
+const NAMED_1 = Number(process.env.PF_NAMED1 || 0.58);
+const NAMED_K = Number(process.env.PF_NAMEDK || 0.62);
+const SIGMA_RANK = Number(process.env.PF_SIGRANK || 3.2);
+const PRIOR_W = Number(process.env.PF_PRIORW || 1);
+const PROJ_W = Number(process.env.PF_PROJW || 0.55);
+const SIZE_S1 = Number(process.env.PF_S1 || 0.45);
+const SIZE_S2 = Number(process.env.PF_S2 || 0.95);
+const SIZE_W1 = Number(process.env.PF_W1 || 0.7);
 const SHORTLIST = 26;
 
 function readJson<T>(file: string): T {
@@ -149,7 +158,7 @@ function shortlist(coins: Map<string, Coin>, task: Task, horizonH: number): Pred
 
 function placeRows(preds: Prediction[], places: number, coins: Map<string, Coin>) {
   const rows: { mint: string; place: number; p: number }[] = [];
-  const sigmaPlace = 3.2; // how far a coin's predicted rank can drift over 7-13 h
+  const sigmaPlace = SIGMA_RANK; // how far a coin's predicted rank can drift over 7-13 h
   const byLastRank = new Map<number, string>();
   for (const c of coins.values()) byLastRank.set(c.rank, c.mint);
   for (let place = 1; place <= places; place++) {
@@ -158,19 +167,19 @@ function placeRows(preds: Prediction[], places: number, coins: Map<string, Coin>
     const prior = new Map<string, number>();
     for (const [r, mint] of byLastRank) {
       const d = Math.abs(r - place);
-      if (d === 0) prior.set(mint, 0.3);
-      else if (d === 1) prior.set(mint, 0.1);
+      if (d === 0) prior.set(mint, 0.3 * PRIOR_W);
+      else if (d === 1) prior.set(mint, 0.1 * PRIOR_W);
     }
     const scored = preds.map((p) => {
       const d = p.rank - place;
       const proj = Math.exp(-(d * d) / (2 * sigmaPlace * sigmaPlace));
-      return { mint: p.mint, w: 0.55 * proj + (prior.get(p.mint) || 0) };
+      return { mint: p.mint, w: PROJ_W * proj + (prior.get(p.mint) || 0) };
     });
     for (const [mint, w] of prior) {
       if (!scored.some((s) => s.mint === mint)) scored.push({ mint, w });
     }
     const total = scored.reduce((s, x) => s + x.w, 0) || 1;
-    const named = place === 1 ? 0.58 : 0.62;
+    const named = place === 1 ? NAMED_1 : NAMED_K;
     const take = scored
       .slice()
       .sort((a, b) => b.w - a.w)
@@ -189,8 +198,8 @@ function sizeRows(preds: Prediction[], task: Task) {
   for (let place = 1; place <= task.places; place++) {
     const mu = at(place);
     const parts = [
-      { w: 0.7, mu, sigma: 0.45 },
-      { w: 0.3, mu: mu + 0.15, sigma: 0.95 },
+      { w: SIZE_W1, mu, sigma: SIZE_S1 },
+      { w: 1 - SIZE_W1, mu: mu + 0.15, sigma: SIZE_S2 },
     ];
     const ps: number[] = [];
     for (let bin = 0; bin <= 81; bin++) {
