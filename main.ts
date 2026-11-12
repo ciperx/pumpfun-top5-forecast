@@ -42,9 +42,9 @@ const LAMPORTS = 1e9;
 const MAX_ROWS_PER_PLACE = 100;
 const NAMED_MASS = 0.62; // rest stays unnamed: newcomers + model error
 // Tuning knobs (env overrides are for our backtest only; defaults are what the grader runs)
-const NAMED_1 = Number(process.env.PF_NAMED1 || 0.58);
-const NAMED_K = Number(process.env.PF_NAMEDK || 0.62);
-const SIGMA_RANK = Number(process.env.PF_SIGRANK || 3.2);
+const NAMED_1 = Number(process.env.PF_NAMED1 || 0.52);
+const NAMED_K = Number(process.env.PF_NAMEDK || 0.56);
+const SIGMA_RANK = Number(process.env.PF_SIGRANK || 3.6);
 const PRIOR_W = Number(process.env.PF_PRIORW || 1);
 const PROJ_W = Number(process.env.PF_PROJW || 0.55);
 const SIZE_S1 = Number(process.env.PF_S1 || 0.40);
