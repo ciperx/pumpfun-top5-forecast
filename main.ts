@@ -47,8 +47,8 @@ const NAMED_K = Number(process.env.PF_NAMEDK || 0.62);
 const SIGMA_RANK = Number(process.env.PF_SIGRANK || 3.2);
 const PRIOR_W = Number(process.env.PF_PRIORW || 1);
 const PROJ_W = Number(process.env.PF_PROJW || 0.55);
-const SIZE_S1 = Number(process.env.PF_S1 || 0.45);
-const SIZE_S2 = Number(process.env.PF_S2 || 0.95);
+const SIZE_S1 = Number(process.env.PF_S1 || 0.40);
+const SIZE_S2 = Number(process.env.PF_S2 || 0.80);
 const SIZE_W1 = Number(process.env.PF_W1 || 0.7);
 const SHORTLIST = 26;
 
